@@ -3,33 +3,51 @@ package com.meetingnotes.service;
 import com.meetingnotes.entity.ActionItem;
 import com.meetingnotes.entity.Meeting;
 import com.meetingnotes.exception.AiProcessingException;
-import jakarta.mail.internet.MimeMessage;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClient;
 
 import java.util.List;
+import java.util.Map;
 
+/**
+ * Sends the meeting summary as an email via the Resend HTTP API
+ * (https://resend.com). Uses plain HTTPS instead of SMTP, so it works on hosts
+ * that block outbound SMTP ports (such as Render's free tier).
+ */
 @Service
-@RequiredArgsConstructor
 public class EmailService {
 
-    private final JavaMailSender mailSender;
+    private final RestClient resend;
+    private final String fromAddress;
 
-    @Value("${app.mail.from}")
-    private String fromAddress;
+    public EmailService(
+            @Value("${RESEND_API_KEY:}") String apiKey,
+            @Value("${app.mail.from}") String fromAddress
+    ) {
+        this.fromAddress = fromAddress;
+        this.resend = RestClient.builder()
+                .baseUrl("https://api.resend.com")
+                .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey)
+                .build();
+    }
 
     public void sendSummary(Meeting meeting, List<String> recipients) {
+        Map<String, Object> payload = Map.of(
+                "from", fromAddress,
+                "to", recipients,
+                "subject", "Meeting Summary: " + meeting.getTitle(),
+                "html", buildHtml(meeting)
+        );
         try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-            helper.setFrom(fromAddress);
-            helper.setTo(recipients.toArray(new String[0]));
-            helper.setSubject("Meeting Summary: " + meeting.getTitle());
-            helper.setText(buildHtml(meeting), true);
-            mailSender.send(message);
+            resend.post()
+                    .uri("/emails")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(payload)
+                    .retrieve()
+                    .toBodilessEntity();
         } catch (Exception e) {
             throw new AiProcessingException("Could not send the summary email: " + e.getMessage(), e);
         }
@@ -66,7 +84,7 @@ public class EmailService {
                 sb.append("<tr>")
                   .append(cell(item.getOwner()))
                   .append(cell(item.getTask()))
-                  .append(cell(item.getDeadline() == null ? "—" : item.getDeadline().toString()))
+                  .append(cell(item.getDeadline() == null ? "-" : item.getDeadline().toString()))
                   .append("</tr>");
             }
             sb.append("</table>");
