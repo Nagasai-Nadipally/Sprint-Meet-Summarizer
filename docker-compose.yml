@@ -1,0 +1,62 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: mn-db
+    environment:
+      POSTGRES_DB: meeting_notes
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - mn-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d meeting_notes"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    container_name: mn-backend
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/meeting_notes
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      # --- Required: your OpenAI key (set it in a .env file next to this compose) ---
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      # Base URL of the AI provider. Default is OpenAI; override to use a
+      # free OpenAI-compatible provider like Groq (https://api.groq.com/openai).
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-https://api.openai.com}
+      GPT_MODEL: ${GPT_MODEL:-gpt-4o-mini}
+      WHISPER_MODEL: ${WHISPER_MODEL:-whisper-1}
+      # --- JWT: generate with `openssl rand -base64 32` ---
+      JWT_SECRET: ${JWT_SECRET:-Y2hhbmdlLW1lLXRoaXMtaXMtYS1kZXYtb25seS1zZWNyZXQtMTIzNDU2Nzg5MA==}
+      # --- Email (optional; leave blank to disable sending) ---
+      MAIL_HOST: ${MAIL_HOST:-smtp.gmail.com}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_FROM: ${MAIL_FROM:-no-reply@meetingnotes.local}
+      # Frontend origin allowed by CORS (matches the published frontend port below)
+      CORS_ALLOWED_ORIGINS: http://localhost:4200
+      STORAGE_DIR: /app/uploads
+    ports:
+      - "8080:8080"
+    volumes:
+      - mn-uploads:/app/uploads
+
+  frontend:
+    build: ./frontend
+    container_name: mn-frontend
+    depends_on:
+      - backend
+    ports:
+      - "4200:80"
+
+volumes:
+  mn-pgdata:
+  mn-uploads:

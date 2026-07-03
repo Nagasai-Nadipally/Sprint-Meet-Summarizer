@@ -1,0 +1,98 @@
+/* =============================================================================
+   Design tokens
+   Palette: cool slate-blue brand with a single warm amber accent for actions.
+   Type:    Fraunces (display, used sparingly) + Inter (everything else).
+   ========================================================================== */
+:root {
+  --ink: #1b2733;
+  --ink-soft: #51606e;
+  --ink-faint: #8696a6;
+  --bg: #f5f8fb;
+  --surface: #ffffff;
+  --border: #e3e9f0;
+  --brand: #2f5d8a;
+  --brand-dark: #234763;
+  --accent: #e0832f;
+  --accent-soft: #fbeddc;
+  --ok: #2e7d57;
+  --ok-soft: #e1f1e9;
+  --warn: #b3541e;
+  --warn-soft: #fbe8da;
+  --danger: #b3261e;
+  --danger-soft: #f9e2e0;
+  --radius: 14px;
+  --shadow-sm: 0 1px 2px rgba(27, 39, 51, 0.06);
+  --shadow-md: 0 6px 24px rgba(27, 39, 51, 0.08);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 { color: var(--ink); }
+
+.display {
+  font-family: Fraunces, Georgia, serif;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* Layout helpers */
+.page {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 28px 20px 64px;
+}
+
+.muted { color: var(--ink-soft); }
+.faint { color: var(--ink-faint); }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Status pills */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 999px;
+  line-height: 1.6;
+  white-space: nowrap;
+}
+.pill .dot { width: 7px; height: 7px; border-radius: 50%; }
+
+.pill--uploaded, .pill--transcribing, .pill--summarizing {
+  background: var(--accent-soft); color: var(--warn);
+}
+.pill--completed { background: var(--ok-soft); color: var(--ok); }
+.pill--failed { background: var(--danger-soft); color: var(--danger); }
+.pill--pending { background: var(--accent-soft); color: var(--warn); }
+.pill--in_progress { background: #e6eef6; color: var(--brand); }
+
+/* Make Material's amber-blue accent buttons match the brand accent */
+.accent-btn {
+  background: var(--accent) !important;
+  color: #fff !important;
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+}
