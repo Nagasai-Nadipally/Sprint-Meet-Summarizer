@@ -7,13 +7,13 @@ of what actually gets decided in sprint meetings and standups.
 **Live demo:** https://sprint-meet-summarizer.onrender.com
 
 > It's on free hosting, so the first load can take 30–60 seconds to wake up. Sign
-> up, then upload a vedio/audio file (`.mp3` / `.m4a`) to try it.
+> up, then upload a video/audio file (`.mp3` / `.m4a`) to try it.
 
 
 
 ## What it does
 
-* Transcribes the vedio/audio into text (Whisper)
+* Transcribes the video/audio into text (Whisper)
 * Writes a summary and pulls out the key discussion points
 * Extracts action items — who owns each task and when it's due
 * Flags open follow-up questions
@@ -60,7 +60,7 @@ The database and model settings already have working defaults.
 
 ## How it works
 
-Uploading a file kicks off a background job so the page never freezes. The vedio/audio
+Uploading a file kicks off a background job so the page never freezes. The video/audio
 goes to Whisper for a transcript, the transcript goes to Llama (with a fixed JSON
 format so the results are structured, not free text), and the summary and action
 items get saved to Postgres. The meeting page checks for updates while it runs, so
@@ -81,7 +81,7 @@ you watch it move from Transcribing → Summarizing → done.
 
 ## Good to know
 
-* Keep test clips short and use vedio/audio — Whisper caps uploads around 25 MB.
+* Keep test clips short and use video/audio — Whisper caps uploads around 25 MB.
 * On the free Render tier the services sleep when idle and the demo database is
 reset from time to time, so the live link is best for a quick look, not permanent storage.
 
